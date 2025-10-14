@@ -43,7 +43,7 @@ import { RouterLink, RouterView } from 'vue-router'
 .app-header {
   text-align: center;
   padding: 2rem 0;
-  background: url('@/assets/bg-pattern.png') repeat;
+  background: linear-gradient(135deg, #f9f5e9 0%, #f0e6d6 100%);
   border-bottom: 1px solid #d9c7a7;
 }
 
