@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI助手Webhook测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        button { padding: 10px 15px; margin: 5px; background: #8b0000; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button:hover { background: #a52a2a; }
+        .result { margin-top: 10px; padding: 10px; background: #f5f5f5; border-radius: 3px; white-space: pre-wrap; }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>AI助手Webhook测试</h1>
+    
+    <div class="test-section">
+        <h3>1. 测试原始webhook (5678端口)</h3>
+        <button onclick="testOriginalWebhook()">测试原始webhook</button>
+        <div id="original-result" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>2. 测试模拟webhook (5679端口)</h3>
+        <button onclick="testMockWebhook()">测试模拟webhook</button>
+        <div id="mock-result" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>3. AI助手功能测试</h3>
+        <button onclick="testAIAssistant()">测试AI助手响应</button>
+        <div id="ai-result" class="result"></div>
+    </div>
+
+    <script>
+        async function testOriginalWebhook() {
+            const resultDiv = document.getElementById('original-result');
+            resultDiv.innerHTML = '测试中...';
+            
+            try {
+                const response = await fetch('http://localhost:5678/webhook-test/86681566-bb4e-4f95-a966-33ad7ad23a31', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: '测试连接' })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    resultDiv.innerHTML = `<span class="success">✅ 连接成功！</span>\n响应数据: ${JSON.stringify(data, null, 2)}`;
+                } else {
+                    const error = await response.text();
+                    resultDiv.innerHTML = `<span class="error">❌ 连接失败 (${response.status})</span>\n错误信息: ${error}`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">❌ 网络错误</span>\n${error.message}`;
+            }
+        }
+        
+        async function testMockWebhook() {
+            const resultDiv = document.getElementById('mock-result');
+            resultDiv.innerHTML = '测试中...';
+            
+            try {
+                const response = await fetch('http://localhost:5679/webhook-test/mock', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: '测试' })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    resultDiv.innerHTML = `<span class="success">✅ 模拟服务器连接成功！</span>\n响应数据: ${JSON.stringify(data, null, 2)}`;
+                } else {
+                    const error = await response.text();
+                    resultDiv.innerHTML = `<span class="error">❌ 连接失败 (${response.status})</span>\n错误信息: ${error}`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">❌ 网络错误</span>\n${error.message}`;
+            }
+        }
+        
+        async function testAIAssistant() {
+            const resultDiv = document.getElementById('ai-result');
+            resultDiv.innerHTML = '测试中...';
+            
+            const testMessages = ['你好', '介绍', '李白', '测试'];
+            let results = [];
+            
+            for (const message of testMessages) {
+                try {
+                    const response = await fetch('http://localhost:5679/webhook-test/mock', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message })
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        results.push(`✅ "${message}" → ${data.response}`);
+                    } else {
+                        results.push(`❌ "${message}" → 请求失败`);
+                    }
+                } catch (error) {
+                    results.push(`❌ "${message}" → ${error.message}`);
+                }
+            }
+            
+            resultDiv.innerHTML = `<span class="success">AI助手功能测试完成：</span>\n${results.join('\n')}`;
+        }
+    </script>
+</body>
+</html>

@@ -8,7 +8,7 @@
       <p v-for="(line, index) in poem.content.split('\n')" :key="index">{{ line }}</p>
     </div>
     <div class="poem-footer">
-      <button class="favorite-btn" @click="toggleFavorite">
+      <button class="favorite-btn" @click="handleToggleFavorite">
         {{ isFavorite ? '★ 已收藏' : '☆ 收藏' }}
       </button>
       <div class="poem-tags">
@@ -20,21 +20,46 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useFavoritesStore } from '@/stores/favorites'
+import { useRouter } from 'vue-router'
+import { supabase } from '@/utils/supabase'
+import useFavorites from '@/composables/useFavorites'
 import type { Poem } from '@/types/poem'
 
 const props = defineProps<{
   poem: Poem
+  isFavorite?: boolean
 }>()
 
-const favoritesStore = useFavoritesStore()
-const isFavorite = computed(() => favoritesStore.isFavorite(props.poem.id))
+const emit = defineEmits<{
+  (e: 'favorite-changed'): void
+}>()
 
-const toggleFavorite = () => {
-  if (isFavorite.value) {
-    favoritesStore.removeFavorite(props.poem.id)
-  } else {
-    favoritesStore.addFavorite(props.poem.id)
+const router = useRouter()
+const { toggleFavorite, isFavorited, favoriteStatus } = useFavorites()
+
+const isFavorite = computed(() =>
+  props.isFavorite !== undefined ? props.isFavorite : isFavorited(props.poem.id)
+)
+
+const handleToggleFavorite = async () => {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    // 用户未登录，跳转到登录页面
+    router.push('/login')
+    return
+  }
+
+  try {
+    const newStatus = await toggleFavorite(props.poem.id)
+    // 立即更新本地状态
+    favoriteStatus.value.set(props.poem.id, newStatus)
+    // 触发收藏状态更新
+    emit('favorite-changed')
+  } catch (error) {
+    console.error('收藏操作失败:', error)
   }
 }
 </script>
@@ -72,7 +97,7 @@ const toggleFavorite = () => {
 }
 
 .poem-content {
-  font-family: "KaiTi", "楷体", serif;
+  font-family: 'KaiTi', '楷体', serif;
   font-size: 1.1rem;
   line-height: 1.8;
   margin-bottom: 1rem;

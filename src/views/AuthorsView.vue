@@ -2,17 +2,32 @@
   <div class="authors-view">
     <h1 class="page-title">著名诗人</h1>
     <p class="page-description">这里汇集了中国历史上最杰出的诗人</p>
-    
-    <div class="authors-grid">
+
+    <div v-if="isLoading" class="loading">
+      <p>正在加载作者数据...</p>
+    </div>
+
+    <div v-else-if="error" class="error">
+      <p>加载失败: {{ error }}</p>
+      <button @click="loadAuthors" class="retry-btn">重试</button>
+    </div>
+
+    <div v-else-if="authors.length === 0" class="empty-state">
+      <div class="empty-icon">👤</div>
+      <h3>暂无作者数据</h3>
+      <p>暂时没有找到作者信息</p>
+    </div>
+
+    <div v-else class="authors-grid">
       <div v-for="author in authors" :key="author.id" class="author-card">
         <div class="author-avatar">
           {{ author.name.charAt(0) }}
         </div>
         <div class="author-info">
           <h3>{{ author.name }}</h3>
-          <p class="dynasty">{{ author.dynasty }} · {{ author.title }}</p>
+          <p class="dynasty">{{ author.dynasty }}</p>
           <p class="intro">{{ author.intro }}</p>
-          <p class="poems-count">代表作: {{ author.representativePoems.join('、') }}</p>
+          <p class="poems-count">作品数量: {{ author.poemsCount }} 首</p>
         </div>
       </div>
     </div>
@@ -20,65 +35,15 @@
 </template>
 
 <script setup lang="ts">
-interface Author {
-  id: number
-  name: string
-  dynasty: string
-  title: string
-  intro: string
-  representativePoems: string[]
-}
+import { ref, onMounted } from 'vue'
+import usePoems from '@/composables/usePoems'
+import type { Author } from '@/types/poem'
 
-const authors: Author[] = [
-  {
-    id: 1,
-    name: '李白',
-    dynasty: '唐代',
-    title: '诗仙',
-    intro: '字太白，号青莲居士，唐代伟大的浪漫主义诗人，其诗豪放飘逸，想象丰富，语言流转自然，音律和谐多变。',
-    representativePoems: ['静夜思', '望庐山瀑布', '将进酒', '蜀道难']
-  },
-  {
-    id: 2,
-    name: '杜甫',
-    dynasty: '唐代',
-    title: '诗圣',
-    intro: '字子美，自号少陵野老，唐代伟大的现实主义诗人，其诗沉郁顿挫，反映社会现实，被誉为"诗史"。',
-    representativePoems: ['春望', '登高', '茅屋为秋风所破歌', '三吏三别']
-  },
-  {
-    id: 3,
-    name: '苏轼',
-    dynasty: '宋代',
-    title: '东坡居士',
-    intro: '字子瞻，号东坡居士，宋代文学巨匠，诗词书画俱佳，其词豪放洒脱，开创豪放词派。',
-    representativePoems: ['水调歌头', '念奴娇·赤壁怀古', '江城子·密州出猎', '定风波']
-  },
-  {
-    id: 4,
-    name: '白居易',
-    dynasty: '唐代',
-    title: '诗魔',
-    intro: '字乐天，号香山居士，唐代现实主义诗人，其诗语言通俗，反映民生疾苦，主张"文章合为时而著，歌诗合为事而作"。',
-    representativePoems: ['琵琶行', '长恨歌', '赋得古原草送别', '卖炭翁']
-  },
-  {
-    id: 5,
-    name: '王维',
-    dynasty: '唐代',
-    title: '诗佛',
-    intro: '字摩诘，唐代著名诗人、画家，其诗清新淡远，自然脱俗，将诗情画意融为一体，开创山水田园诗派。',
-    representativePoems: ['山居秋暝', '相思', '使至塞上', '鹿柴']
-  },
-  {
-    id: 6,
-    name: '李清照',
-    dynasty: '宋代',
-    title: '易安居士',
-    intro: '号易安居士，宋代著名女词人，婉约词派代表，其词语言清丽，感情真挚，善用白描手法。',
-    representativePoems: ['声声慢', '如梦令', '醉花阴', '武陵春']
-  }
-]
+const { authors, loadAuthors, isLoading, error } = usePoems()
+
+onMounted(async () => {
+  await loadAuthors()
+})
 </script>
 
 <style scoped>
@@ -86,6 +51,56 @@ const authors: Author[] = [
   padding: 2rem;
   max-width: 1200px;
   margin: 0 auto;
+}
+
+.loading {
+  text-align: center;
+  padding: 3rem;
+  color: #666;
+}
+
+.error {
+  text-align: center;
+  padding: 3rem;
+  color: #d32f2f;
+}
+
+.retry-btn {
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  background: #0066cc;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.retry-btn:hover {
+  background: #0052a3;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.empty-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.empty-state h3 {
+  color: #495057;
+  margin-bottom: 1rem;
+}
+
+.empty-state p {
+  color: #6c757d;
+  margin-bottom: 2rem;
+  line-height: 1.6;
 }
 
 .page-title {

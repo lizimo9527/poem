@@ -9,92 +9,148 @@
       <div class="original-poem">
         <h3>原文</h3>
         <div class="poem-text">
-          <p v-for="(line, index) in poem.content.split('\n')" :key="index">{{ line }}</p>
+          <p v-for="(line, index) in poem.content.split(/\r?\n/)" :key="index">{{ line }}</p>
         </div>
       </div>
 
-      <div class="translation">
+      <div class="translation" v-if="poem.translation">
         <h3>译文</h3>
         <div class="translation-text">
-          <p v-for="(line, index) in poem.translation.split('\n')" :key="index">{{ line }}</p>
+          <p v-for="(line, index) in poem.translation.split(/\r?\n/)" :key="index">{{ line }}</p>
         </div>
       </div>
 
-      <div class="appreciation">
+      <div class="explanation">
         <h3>赏析</h3>
-        <div class="appreciation-text">
-          <p>{{ poem.appreciation }}</p>
+        <div class="explanation-text">
+          <p>{{ poem.explanation }}</p>
+        </div>
+      </div>
+
+      <div class="poem-tags">
+        <h3>标签</h3>
+        <div class="tags-container">
+          <span v-for="tag in poem.tags" :key="tag" class="tag">{{ tag }}</span>
         </div>
       </div>
     </div>
 
     <div class="poem-footer">
-      <button class="back-button" @click="$router.back()">返回</button>
+      <div class="footer-actions">
+        <button class="favorite-btn" @click="handleToggleFavorite">
+          {{ isFavorite ? '★ 已收藏' : '☆ 收藏' }}
+        </button>
+        <ShareButton :poem-id="poem.id" :poem-title="poem.title" :poem-author="poem.author" />
+        <RandomPoemButton :current-poem-id="poem.id" button-text="随机一首" />
+        <button class="back-button" @click="goBack">返回</button>
+        <button class="browse-button" @click="goToPoems">浏览更多</button>
+      </div>
+    </div>
+
+    <div v-if="relatedPoems.length > 0" class="related-poems">
+      <h3>相关推荐</h3>
+      <div class="related-list">
+        <div
+          v-for="relatedPoem in relatedPoems"
+          :key="relatedPoem.id"
+          class="related-poem"
+          @click="goToPoemDetail(relatedPoem.id)"
+        >
+          <h4>{{ relatedPoem.title }}</h4>
+          <p class="author">{{ relatedPoem.author }} · {{ relatedPoem.dynasty }}</p>
+          <p class="preview">{{ getFirstLine(relatedPoem.content) }}</p>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, onMounted, computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import usePoems from '@/composables/usePoems'
+import useFavorites from '@/composables/useFavorites'
 
-interface Poem {
-  id: number
-  title: string
-  author: string
-  dynasty: string
-  content: string
-  translation: string
-  appreciation: string
-}
+import ShareButton from '@/components/ShareButton.vue'
+import RandomPoemButton from '@/components/RandomPoemButton.vue'
+import type { Poem } from '@/types/poem'
 
 const route = useRoute()
-const poem = ref<Poem>({
-  id: 0,
-  title: '',
-  author: '',
-  dynasty: '',
-  content: '',
-  translation: '',
-  appreciation: ''
+const router = useRouter()
+const { poems, currentPoem, loadPoemById, loadPoems, isLoading, error } = usePoems()
+const { isFavorited, toggleFavorite, checkFavoriteStatus } = useFavorites()
+
+const poem = computed(
+  () =>
+    currentPoem.value || {
+      id: 0,
+      title: '',
+      author: '',
+      dynasty: '',
+      content: '',
+      tags: [],
+      translation: '',
+      explanation: '',
+    }
+)
+
+const isFavorite = computed(() => {
+  return isFavorited(poem.value.id)
 })
 
-// 诗词数据
-const poemsData: Poem[] = [
-  {
-    id: 1,
-    title: '静夜思',
-    author: '李白',
-    dynasty: '唐代',
-    content: '床前明月光\n疑是地上霜\n举头望明月\n低头思故乡',
-    translation: '明亮的月光洒在床前的窗户纸上，\n好像地上泛起了一层霜。\n我禁不住抬起头来，看那天窗外空中的一轮明月，\n不由得低头沉思，想起远方的家乡。',
-    appreciation: '这首诗写的是在寂静的月夜思念家乡的感受。诗的前两句，是写诗人在作客他乡的特定环境中一刹那间所产生的错觉。后两句通过动作神态的刻画，深化思乡之情。'
-  },
-  {
-    id: 2,
-    title: '春晓',
-    author: '孟浩然',
-    dynasty: '唐代',
-    content: '春眠不觉晓\n处处闻啼鸟\n夜来风雨声\n花落知多少',
-    translation: '春日里贪睡不知不觉天已破晓，\n搅乱我酣眠的是那啁啾的小鸟。\n昨天夜里风声雨声一直不断，\n那娇美的春花不知被吹落了多少？',
-    appreciation: '这首诗是诗人隐居在鹿门山时所做，意境十分优美。诗人抓住春天的早晨刚刚醒来时的一瞬间展开描写和联想，生动地表达了诗人对春天的热爱和怜惜之情。'
-  },
-  {
-    id: 3,
-    title: '登鹳雀楼',
-    author: '王之涣',
-    dynasty: '唐代',
-    content: '白日依山尽\n黄河入海流\n欲穷千里目\n更上一层楼',
-    translation: '夕阳依傍着西山慢慢地沉没，\n滔滔黄河朝着东海汹涌奔流。\n若想把千里的风光景物看够，\n那就要登上更高的一层城楼。',
-    appreciation: '这首诗写诗人在登高望远中表现出来的不凡的胸襟抱负，反映了盛唐时期人们积极向上的进取精神。前两句写所见，后两句写所想，把哲理与景物、情势溶化得天衣无缝。'
+const handleToggleFavorite = async () => {
+  try {
+    const newStatus = await toggleFavorite(poem.value.id)
+    // 立即更新本地状态
+    // 这里不需要手动更新，因为 useFavorites 中的 toggleFavorite 已经更新了 favoriteStatus
+  } catch (error) {
+    console.error('切换收藏状态失败:', error)
   }
-]
+}
 
-onMounted(() => {
+const goBack = () => {
+  router.back()
+}
+
+const goToPoems = () => {
+  router.push('/poems')
+}
+
+const goToPoemDetail = (poemId: number) => {
+  router.push(`/poem/${poemId}`)
+}
+
+const getFirstLine = (content: string) => {
+  return content.split(/\r?\n/)[0]
+}
+
+const relatedPoems = computed(() => {
+  if (!poem.value.id) return []
+
+  return poems.value
+    .filter((p) => p.id !== poem.value.id)
+    .filter(
+      (p) =>
+        p.author === poem.value.author ||
+        p.dynasty === poem.value.dynasty ||
+        p.tags.some((tag) => poem.value.tags.includes(tag))
+    )
+    .slice(0, 3)
+})
+
+onMounted(async () => {
   const poemId = parseInt(route.params.id as string)
-  const foundPoem = poemsData.find(p => p.id === poemId)
-  if (foundPoem) {
-    poem.value = foundPoem
+
+  try {
+    // 加载诗词详情
+    await loadPoemById(poemId)
+    // 检查收藏状态
+    await checkFavoriteStatus(poemId)
+
+    // 加载诗词列表用于相关推荐
+    await loadPoems()
+  } catch (error) {
+    console.error('加载诗词详情失败:', error)
   }
 })
 </script>
@@ -130,7 +186,8 @@ onMounted(() => {
 
 .original-poem,
 .translation,
-.appreciation {
+.explanation,
+.poem-tags {
   background: white;
   padding: 2rem;
   border-radius: 12px;
@@ -139,7 +196,8 @@ onMounted(() => {
 
 .original-poem h3,
 .translation h3,
-.appreciation h3 {
+.explanation h3,
+.poem-tags h3 {
   color: #8b0000;
   margin-bottom: 1rem;
   border-bottom: 2px solid #f0f0f0;
@@ -147,16 +205,30 @@ onMounted(() => {
 }
 
 .poem-text {
-  font-family: "KaiTi", "楷体", serif;
+  font-family: 'KaiTi', '楷体', serif;
   font-size: 1.3rem;
   line-height: 2;
   text-align: center;
 }
 
 .translation-text,
-.appreciation-text {
+.explanation-text {
   line-height: 1.8;
   color: #444;
+}
+
+.tags-container {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.tag {
+  background: #f0f0f0;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  color: #666;
 }
 
 .poem-footer {
@@ -164,18 +236,126 @@ onMounted(() => {
   margin-top: 3rem;
 }
 
-.back-button {
-  background: #8b0000;
-  color: white;
+.footer-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.favorite-btn,
+.back-button,
+.browse-button {
   border: none;
-  padding: 0.8rem 2rem;
+  padding: 0.8rem 1.5rem;
   border-radius: 6px;
   cursor: pointer;
   font-size: 1rem;
-  transition: background 0.3s;
+  transition: all 0.3s;
+}
+
+.favorite-btn {
+  background: #f8f9fa;
+  color: #8b0000;
+  border: 1px solid #8b0000;
+}
+
+.favorite-btn:hover {
+  background: #8b0000;
+  color: white;
+}
+
+.back-button {
+  background: #6c757d;
+  color: white;
 }
 
 .back-button:hover {
+  background: #5a6268;
+}
+
+.browse-button {
+  background: #8b0000;
+  color: white;
+}
+
+.browse-button:hover {
   background: #6a0000;
+}
+
+.related-poems {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid #f0f0f0;
+}
+
+.related-poems h3 {
+  color: #8b0000;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.related-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.related-poem {
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-left: 3px solid #8b0000;
+}
+
+.related-poem:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.related-poem h4 {
+  color: #8b0000;
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+}
+
+.related-poem .author {
+  color: #666;
+  font-size: 0.9rem;
+  margin: 0 0 0.5rem;
+}
+
+.related-poem .preview {
+  font-family: 'KaiTi', '楷体', serif;
+  font-size: 1rem;
+  color: #333;
+  margin: 0;
+  line-height: 1.4;
+}
+
+@media (max-width: 768px) {
+  .poem-detail {
+    padding: 1rem;
+  }
+
+  .footer-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .favorite-btn,
+  .back-button,
+  .browse-button {
+    width: 100%;
+    max-width: 200px;
+  }
+
+  .related-list {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
