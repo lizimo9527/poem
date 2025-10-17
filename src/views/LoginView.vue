@@ -86,6 +86,17 @@
 
         <div v-if="error" class="error-message">
           {{ error }}
+          <div v-if="error.includes('授权请求已处理')" class="solution-tips">
+            <p>解决方案：</p>
+            <ul>
+              <li>清除浏览器缓存和Cookie</li>
+              <li>尝试使用无痕/隐私模式</li>
+              <li>
+                或点击
+                <button @click="clearOAuthCache" class="clear-cache-btn">清除认证缓存</button>
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
     </div>
@@ -98,7 +109,7 @@ import { useRouter } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
 
 const router = useRouter()
-const { user, login, register, isLoading, error } = useAuth()
+const { user, login, register, isLoading, error, clearOAuthState, clearError } = useAuth()
 
 const showRegister = ref(false)
 
@@ -137,6 +148,12 @@ const handleRegister = async () => {
     // 注册成功后直接登录并跳转到首页
     router.push('/')
   }
+}
+
+// 清除OAuth认证缓存
+const clearOAuthCache = async () => {
+  clearOAuthState()
+  clearError()
 }
 </script>
 
@@ -289,6 +306,44 @@ const handleRegister = async () => {
   border-radius: 0.5rem;
   margin-top: 1rem;
   text-align: center;
+}
+
+.solution-tips {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background: #f0f8ff;
+  border: 1px solid #b3d9ff;
+  border-radius: 0.5rem;
+}
+
+.solution-tips p {
+  margin: 0 0 0.5rem 0;
+  font-weight: 600;
+  color: #0066cc;
+}
+
+.solution-tips ul {
+  margin: 0;
+  padding-left: 1rem;
+}
+
+.solution-tips li {
+  margin-bottom: 0.25rem;
+}
+
+.clear-cache-btn {
+  background: #0066cc;
+  color: white;
+  border: none;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  margin-left: 0.25rem;
+}
+
+.clear-cache-btn:hover {
+  background: #0052a3;
 }
 
 @media (max-width: 480px) {

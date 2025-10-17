@@ -140,15 +140,28 @@ const sendMessage = async () => {
   } catch (error) {
     console.error('AI助手请求失败:', error)
 
-    const errorMessage =
-      error.name === 'AbortError'
-        ? '请求超时，请稍后重试。'
-        : '抱歉，网络连接出现问题，请稍后重试。'
+    // 检查是否是CORS错误（部署后可能遇到）
+    const isCorsError = error.message?.includes('CORS') || error.message?.includes('cors')
+
+    // 检查是否是网络错误
+    const isNetworkError = error.message?.includes('Failed to fetch') || error.name === 'TypeError'
+
+    let errorMessage = '抱歉，网络连接出现问题，请稍后重试。'
+
+    if (error.name === 'AbortError') {
+      errorMessage = '请求超时，请稍后重试。'
+    } else if (isCorsError || isNetworkError) {
+      errorMessage = 'AI助手服务暂时不可用，请检查网络连接或稍后重试。'
+    }
+
+    // 使用备用响应
+    const randomIndex = Math.floor(Math.random() * AI_ASSISTANT_CONFIG.FALLBACK_RESPONSES.length)
+    const fallbackResponse = AI_ASSISTANT_CONFIG.FALLBACK_RESPONSES[randomIndex]
 
     messages.value.push({
       id: messageId++,
       type: 'ai',
-      content: errorMessage,
+      content: fallbackResponse,
       timestamp: new Date(),
     })
   } finally {

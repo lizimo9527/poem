@@ -52,6 +52,8 @@ export function useAuth() {
         error.value = '邮箱或密码错误，请重试'
       } else if (err.message?.includes('Email rate limit exceeded')) {
         error.value = '登录尝试过于频繁，请稍后再试'
+      } else if (err.message?.includes('OAuth authorization request already approved')) {
+        error.value = '授权请求已处理，请尝试重新登录或清除浏览器缓存'
       } else {
         error.value = err.message || '登录失败，请重试'
       }
@@ -96,6 +98,8 @@ export function useAuth() {
         error.value = '密码长度不足，请使用至少6位密码'
       } else if (err.message?.includes('Invalid email')) {
         error.value = '邮箱格式不正确，请检查后重试'
+      } else if (err.message?.includes('OAuth authorization request already approved')) {
+        error.value = '授权请求已处理，请尝试重新注册或清除浏览器缓存'
       } else {
         error.value = err.message || '注册失败，请重试'
       }
@@ -139,6 +143,21 @@ export function useAuth() {
     error.value = null
   }
 
+  // 清除OAuth状态（用于解决授权请求已批准的错误）
+  const clearOAuthState = () => {
+    // 清除本地存储中的OAuth相关数据
+    if (typeof window !== 'undefined') {
+      const keys = Object.keys(localStorage)
+      keys.forEach((key) => {
+        if (key.includes('supabase.auth') || key.includes('oauth')) {
+          localStorage.removeItem(key)
+        }
+      })
+      // 清除sessionStorage
+      sessionStorage.clear()
+    }
+  }
+
   // 初始化认证
   init()
 
@@ -155,6 +174,7 @@ export function useAuth() {
     logout,
     getCurrentUser,
     clearError,
+    clearOAuthState,
   }
 }
 

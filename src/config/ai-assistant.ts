@@ -1,7 +1,9 @@
 // AI助手配置
 export const AI_ASSISTANT_CONFIG = {
-  // n8n工作流webhook地址
-  API_ENDPOINT: 'http://localhost:5678/webhook/86681566-bb4e-4f95-a966-33ad7ad23a31',
+  // n8n工作流webhook地址 - 使用环境变量
+  API_ENDPOINT:
+    import.meta.env.VITE_AI_ASSISTANT_WEBHOOK_URL ||
+    'http://localhost:5678/webhook/86681566-bb4e-4f95-a966-33ad7ad23a31',
 
   // 备用响应（当API不可用时使用）
   FALLBACK_RESPONSES: [
