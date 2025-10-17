@@ -1,4 +1,4 @@
-import { supabase } from '@/utils/supabase'
+import supabase from '@/utils/supabase'
 import type { Poem, Author } from '@/types/poem'
 
 // 诗词服务类
@@ -15,7 +15,7 @@ export class PoemService {
       throw error
     }
 
-    return data.map(poem => ({
+    return data.map((poem) => ({
       id: poem.id,
       title: poem.title,
       author: poem.author,
@@ -23,17 +23,13 @@ export class PoemService {
       content: poem.content,
       translation: poem.translation || undefined,
       explanation: poem.explanation || undefined,
-      tags: poem.tags || []
+      tags: poem.tags || [],
     }))
   }
 
   // 根据ID获取诗词详情
   static async getPoemById(id: number): Promise<Poem | null> {
-    const { data, error } = await supabase
-      .from('poems')
-      .select('*')
-      .eq('id', id)
-      .single()
+    const { data, error } = await supabase.from('poems').select('*').eq('id', id).single()
 
     if (error) {
       console.error('获取诗词详情失败:', error)
@@ -48,7 +44,7 @@ export class PoemService {
       content: data.content,
       translation: data.translation || undefined,
       explanation: data.explanation || undefined,
-      tags: data.tags || []
+      tags: data.tags || [],
     }
   }
 
@@ -65,7 +61,7 @@ export class PoemService {
       throw error
     }
 
-    return data.map(poem => ({
+    return data.map((poem) => ({
       id: poem.id,
       title: poem.title,
       author: poem.author,
@@ -73,7 +69,7 @@ export class PoemService {
       content: poem.content,
       translation: poem.translation || undefined,
       explanation: poem.explanation || undefined,
-      tags: poem.tags || []
+      tags: poem.tags || [],
     }))
   }
 
@@ -90,7 +86,7 @@ export class PoemService {
       throw error
     }
 
-    return data.map(poem => ({
+    return data.map((poem) => ({
       id: poem.id,
       title: poem.title,
       author: poem.author,
@@ -98,7 +94,7 @@ export class PoemService {
       content: poem.content,
       translation: poem.translation || undefined,
       explanation: poem.explanation || undefined,
-      tags: poem.tags || []
+      tags: poem.tags || [],
     }))
   }
 
@@ -114,22 +110,18 @@ export class PoemService {
       throw error
     }
 
-    return data.map(author => ({
+    return data.map((author) => ({
       id: author.id,
       name: author.name,
       dynasty: author.dynasty,
       intro: author.intro,
-      poemsCount: author.poems_count
+      poemsCount: author.poems_count,
     }))
   }
 
   // 根据ID获取作者详情
   static async getAuthorById(id: number): Promise<Author | null> {
-    const { data, error } = await supabase
-      .from('authors')
-      .select('*')
-      .eq('id', id)
-      .single()
+    const { data, error } = await supabase.from('authors').select('*').eq('id', id).single()
 
     if (error) {
       console.error('获取作者详情失败:', error)
@@ -141,14 +133,13 @@ export class PoemService {
       name: data.name,
       dynasty: data.dynasty,
       intro: data.intro,
-      poemsCount: data.poems_count
+      poemsCount: data.poems_count,
     }
   }
 
   // 获取随机诗词
   static async getRandomPoem(): Promise<Poem | null> {
-    const { data, error } = await supabase
-      .rpc('get_random_poem')
+    const { data, error } = await supabase.rpc('get_random_poem')
 
     if (error) {
       console.error('获取随机诗词失败:', error)
@@ -165,7 +156,7 @@ export class PoemService {
       content: data.content,
       translation: data.translation || undefined,
       explanation: data.explanation || undefined,
-      tags: data.tags || []
+      tags: data.tags || [],
     }
   }
 
@@ -182,7 +173,7 @@ export class PoemService {
       throw error
     }
 
-    return data.map(poem => ({
+    return data.map((poem) => ({
       id: poem.id,
       title: poem.title,
       author: poem.author,
@@ -190,7 +181,7 @@ export class PoemService {
       content: poem.content,
       translation: poem.translation || undefined,
       explanation: poem.explanation || undefined,
-      tags: poem.tags || []
+      tags: poem.tags || [],
     }))
   }
 }

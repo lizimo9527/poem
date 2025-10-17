@@ -21,7 +21,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { supabase } from '@/utils/supabase'
+import supabase from '@/utils/supabase'
 import useFavorites from '@/composables/useFavorites'
 import type { Poem } from '@/types/poem'
 

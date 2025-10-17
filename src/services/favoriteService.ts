@@ -1,4 +1,4 @@
-import { supabase } from '@/utils/supabase'
+import supabase from '@/utils/supabase'
 import type { Poem } from '@/types/poem'
 
 // 收藏服务类

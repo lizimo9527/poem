@@ -1,5 +1,5 @@
 import { ref, computed } from 'vue'
-import { supabase } from '@/utils/supabase'
+import supabase from '@/utils/supabase'
 import type { AuthError } from '@supabase/supabase-js'
 
 // 认证组合式函数

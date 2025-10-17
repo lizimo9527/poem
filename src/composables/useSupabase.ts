@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import { supabase } from '../utils/supabase'
+import supabase from '../utils/supabase'
 
 // Supabase 组合式函数
 export function useSupabase() {
@@ -22,9 +22,12 @@ export function useSupabase() {
     try {
       loading.value = true
       clearError()
-      
-      const { data: { user }, error: userError } = await supabase.auth.getUser()
-      
+
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser()
+
       if (userError) throw userError
       return user
     } catch (err) {
@@ -40,12 +43,12 @@ export function useSupabase() {
     try {
       loading.value = true
       clearError()
-      
+
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email,
-        password
+        password,
       })
-      
+
       if (signInError) throw signInError
       return data
     } catch (err) {
@@ -61,12 +64,12 @@ export function useSupabase() {
     try {
       loading.value = true
       clearError()
-      
+
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,
-        password
+        password,
       })
-      
+
       if (signUpError) throw signUpError
       return data
     } catch (err) {
@@ -82,9 +85,9 @@ export function useSupabase() {
     try {
       loading.value = true
       clearError()
-      
+
       const { error: signOutError } = await supabase.auth.signOut()
-      
+
       if (signOutError) throw signOutError
       return true
     } catch (err) {
@@ -102,6 +105,6 @@ export function useSupabase() {
     getCurrentUser,
     signIn,
     signUp,
-    signOut
+    signOut,
   }
 }

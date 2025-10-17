@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { supabase } from '../utils/supabase'
+import supabase from '../utils/supabase'
 import type { User } from '@supabase/supabase-js'
 
 export const useSupabaseStore = defineStore('supabase', () => {
@@ -13,12 +13,15 @@ export const useSupabaseStore = defineStore('supabase', () => {
     try {
       isLoading.value = true
       error.value = null
-      
-      const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser()
-      
+
+      const {
+        data: { user: currentUser },
+        error: userError,
+      } = await supabase.auth.getUser()
+
       if (userError) throw userError
       user.value = currentUser
-      
+
       // 监听认证状态变化
       supabase.auth.onAuthStateChange((event, session) => {
         user.value = session?.user ?? null
@@ -36,12 +39,12 @@ export const useSupabaseStore = defineStore('supabase', () => {
     try {
       isLoading.value = true
       error.value = null
-      
+
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email,
-        password
+        password,
       })
-      
+
       if (signInError) throw signInError
       user.value = data.user
       return data
@@ -58,12 +61,12 @@ export const useSupabaseStore = defineStore('supabase', () => {
     try {
       isLoading.value = true
       error.value = null
-      
+
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,
-        password
+        password,
       })
-      
+
       if (signUpError) throw signUpError
       return data
     } catch (err: any) {
@@ -79,9 +82,9 @@ export const useSupabaseStore = defineStore('supabase', () => {
     try {
       isLoading.value = true
       error.value = null
-      
+
       const { error: signOutError } = await supabase.auth.signOut()
-      
+
       if (signOutError) throw signOutError
       user.value = null
     } catch (err: any) {
@@ -105,6 +108,6 @@ export const useSupabaseStore = defineStore('supabase', () => {
     signIn,
     signUp,
     signOut,
-    clearError
+    clearError,
   }
 })

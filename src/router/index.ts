@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
-import { supabase } from '@/utils/supabase'
+import supabase from '@/utils/supabase'
 
 // 路由组件懒加载
 const Home = () => import('../views/HomeView.vue')
@@ -111,6 +111,16 @@ router.beforeEach(async (to, from, next) => {
   // 检查是否需要认证
   if (to.meta?.requiresAuth) {
     try {
+      // 检查Supabase是否配置
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+
+      if (!supabaseUrl || !supabaseAnonKey) {
+        console.warn('Supabase未配置，跳过认证检查')
+        next()
+        return
+      }
+
       const {
         data: { session },
       } = await supabase.auth.getSession()
@@ -128,6 +138,16 @@ router.beforeEach(async (to, from, next) => {
   // 如果已登录，重定向登录页面到首页
   if (to.path === '/login') {
     try {
+      // 检查Supabase是否配置
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+
+      if (!supabaseUrl || !supabaseAnonKey) {
+        console.warn('Supabase未配置，跳过登录重定向检查')
+        next()
+        return
+      }
+
       const {
         data: { session },
       } = await supabase.auth.getSession()
