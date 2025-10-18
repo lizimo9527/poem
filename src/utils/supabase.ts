@@ -14,6 +14,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
   // 创建一个模拟的Supabase客户端，避免应用崩溃
   const mockSupabase = {
     auth: {
+      getSession: () => Promise.resolve({ data: { session: null }, error: null }),
       getUser: () => Promise.resolve({ data: { user: null }, error: null }),
       signInWithPassword: () => Promise.resolve({ data: null, error: new Error('Supabase未配置') }),
       signUp: () => Promise.resolve({ data: null, error: new Error('Supabase未配置') }),
@@ -24,7 +25,10 @@ if (!supabaseUrl || !supabaseAnonKey) {
     },
     from: () => ({
       select: () => ({
-        eq: () => Promise.resolve({ data: [], error: new Error('Supabase未配置') }),
+        eq: () => ({
+          order: () => Promise.resolve({ data: [], error: new Error('Supabase未配置') }),
+        }),
+        order: () => Promise.resolve({ data: [], error: new Error('Supabase未配置') }),
       }),
       insert: () => Promise.resolve({ data: null, error: new Error('Supabase未配置') }),
       update: () => Promise.resolve({ data: null, error: new Error('Supabase未配置') }),
