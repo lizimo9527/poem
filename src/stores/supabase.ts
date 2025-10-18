@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import supabase from '../utils/supabase'
-import type { User } from '@supabase/supabase-js'
+import type { User, AuthChangeEvent, Session } from '@supabase/supabase-js'
 
 export const useSupabaseStore = defineStore('supabase', () => {
   const user = ref<User | null>(null)
@@ -22,10 +22,12 @@ export const useSupabaseStore = defineStore('supabase', () => {
       if (userError) throw userError
       user.value = currentUser
 
-      // 监听认证状态变化
-      supabase.auth.onAuthStateChange((event, session) => {
-        user.value = session?.user ?? null
-      })
+      // 监听认证状态变化（仅在Supabase配置时）
+      if (supabase.auth.onAuthStateChange) {
+        supabase.auth.onAuthStateChange((event, session) => {
+          user.value = session?.user ?? null
+        })
+      }
     } catch (err: any) {
       error.value = err.message || '初始化用户失败'
       console.error('Supabase 初始化错误:', err)

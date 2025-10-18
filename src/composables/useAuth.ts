@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue'
 import supabase from '@/utils/supabase'
-import type { AuthError } from '@supabase/supabase-js'
+import type { AuthError, AuthChangeEvent, Session } from '@supabase/supabase-js'
 
 // 认证组合式函数
 export function useAuth() {
@@ -20,14 +20,16 @@ export function useAuth() {
     }
   }
 
-  // 监听认证状态变化
-  supabase.auth.onAuthStateChange((event, session) => {
-    if (event === 'SIGNED_IN') {
-      user.value = session?.user || null
-    } else if (event === 'SIGNED_OUT') {
-      user.value = null
-    }
-  })
+  // 监听认证状态变化（仅在Supabase配置时）
+  if (supabase.auth.onAuthStateChange) {
+    supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN') {
+        user.value = session?.user || null
+      } else if (event === 'SIGNED_OUT') {
+        user.value = null
+      }
+    })
+  }
 
   // 登录
   const login = async (email: string, password: string) => {
